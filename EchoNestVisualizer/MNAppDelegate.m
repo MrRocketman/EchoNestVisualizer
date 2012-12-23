@@ -169,4 +169,14 @@
     [[NSNotificationCenter defaultCenter] postNotificationName:@"SegmentsCheckbox" object:[NSNumber numberWithInt:([sender state] == NSOnState ? 1 : 0)]];
 }
 
+- (IBAction)timbreCheckboxPress:(id)sender
+{
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"TimbreCheckbox" object:[NSNumber numberWithInt:([sender state] == NSOnState ? 1 : 0)]];
+}
+
+- (IBAction)pitchCheckboxPress:(id)sender
+{
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"PitchCheckbox" object:[NSNumber numberWithInt:([sender state] == NSOnState ? 1 : 0)]];
+}
+
 @end

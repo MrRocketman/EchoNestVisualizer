@@ -10,7 +10,7 @@
 
 // This is how many pixels per second there are are a zoom level of 1
 #define PIXEL_TO_ZOOM_RATIO 25
-#define TRACK_ITEM_HEIGHT 40.0
+#define TRACK_ITEM_HEIGHT 20.0
 #define TOP_BAR_HEIGHT 20.0
 #define AUTO_SCROLL_REFRESH_RATE 0.03
 #define BOX_CORNER_RADIUS 3.0
@@ -44,6 +44,9 @@ enum
     BOOL drawBeats;
     BOOL drawTatums;
     BOOL drawSegments;
+    BOOL drawTimbre;
+    BOOL drawPitch;
+    int trackItemsCount;
     
     NSPoint scrollViewOrigin;
     NSSize scrollViewVisibleSize;
@@ -79,5 +82,7 @@ enum
 @property(assign) BOOL drawBeats;
 @property(assign) BOOL drawTatums;
 @property(assign) BOOL drawSegments;
+@property(assign) BOOL drawTimbre;
+@property(assign) BOOL drawPitch;
 
 @end

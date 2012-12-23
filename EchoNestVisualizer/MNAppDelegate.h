@@ -38,5 +38,7 @@
 - (IBAction)beatsCheckboxPress:(id)sender;
 - (IBAction)tatumsCheckboxPress:(id)sender;
 - (IBAction)segmentsCheckboxPress:(id)sender;
+- (IBAction)timbreCheckboxPress:(id)sender;
+- (IBAction)pitchCheckboxPress:(id)sender;
 
 @end
