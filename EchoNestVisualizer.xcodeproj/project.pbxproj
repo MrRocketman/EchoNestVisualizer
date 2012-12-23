@@ -13,6 +13,14 @@
 		1AC086241686A7F80094CFB3 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 1AC086221686A7F80094CFB3 /* Credits.rtf */; };
 		1AC086271686A7F80094CFB3 /* MNAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC086261686A7F80094CFB3 /* MNAppDelegate.m */; };
 		1AC0862A1686A7F80094CFB3 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1AC086281686A7F80094CFB3 /* MainMenu.xib */; };
+		1AC086321686A8B00094CFB3 /* MNDrawingView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC086311686A8B00094CFB3 /* MNDrawingView.m */; };
+		1AC0863F1686AD270094CFB3 /* MNCheckboxBackground.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC086341686AD270094CFB3 /* MNCheckboxBackground.m */; };
+		1AC086401686AD270094CFB3 /* MNCheckboxBackground1.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC086361686AD270094CFB3 /* MNCheckboxBackground1.m */; };
+		1AC086411686AD270094CFB3 /* MNCheckboxBackground2.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC086381686AD270094CFB3 /* MNCheckboxBackground2.m */; };
+		1AC086421686AD270094CFB3 /* MNCheckboxBackground3.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0863A1686AD270094CFB3 /* MNCheckboxBackground3.m */; };
+		1AC086431686AD270094CFB3 /* MNCheckboxBackground4.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0863C1686AD270094CFB3 /* MNCheckboxBackground4.m */; };
+		1AC086441686AD270094CFB3 /* MNCheckboxBackground5.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0863E1686AD270094CFB3 /* MNCheckboxBackground5.m */; };
+		1AC086471686B7760094CFB3 /* Toolbar.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 1AC086461686B7760094CFB3 /* Toolbar.tiff */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +37,21 @@
 		1AC086251686A7F80094CFB3 /* MNAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MNAppDelegate.h; sourceTree = "<group>"; };
 		1AC086261686A7F80094CFB3 /* MNAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MNAppDelegate.m; sourceTree = "<group>"; };
 		1AC086291686A7F80094CFB3 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		1AC086301686A8B00094CFB3 /* MNDrawingView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MNDrawingView.h; sourceTree = "<group>"; };
+		1AC086311686A8B00094CFB3 /* MNDrawingView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MNDrawingView.m; sourceTree = "<group>"; };
+		1AC086331686AD270094CFB3 /* MNCheckboxBackground.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MNCheckboxBackground.h; sourceTree = "<group>"; };
+		1AC086341686AD270094CFB3 /* MNCheckboxBackground.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MNCheckboxBackground.m; sourceTree = "<group>"; };
+		1AC086351686AD270094CFB3 /* MNCheckboxBackground1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MNCheckboxBackground1.h; sourceTree = "<group>"; };
+		1AC086361686AD270094CFB3 /* MNCheckboxBackground1.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MNCheckboxBackground1.m; sourceTree = "<group>"; };
+		1AC086371686AD270094CFB3 /* MNCheckboxBackground2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MNCheckboxBackground2.h; sourceTree = "<group>"; };
+		1AC086381686AD270094CFB3 /* MNCheckboxBackground2.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MNCheckboxBackground2.m; sourceTree = "<group>"; };
+		1AC086391686AD270094CFB3 /* MNCheckboxBackground3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MNCheckboxBackground3.h; sourceTree = "<group>"; };
+		1AC0863A1686AD270094CFB3 /* MNCheckboxBackground3.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MNCheckboxBackground3.m; sourceTree = "<group>"; };
+		1AC0863B1686AD270094CFB3 /* MNCheckboxBackground4.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MNCheckboxBackground4.h; sourceTree = "<group>"; };
+		1AC0863C1686AD270094CFB3 /* MNCheckboxBackground4.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MNCheckboxBackground4.m; sourceTree = "<group>"; };
+		1AC0863D1686AD270094CFB3 /* MNCheckboxBackground5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MNCheckboxBackground5.h; sourceTree = "<group>"; };
+		1AC0863E1686AD270094CFB3 /* MNCheckboxBackground5.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MNCheckboxBackground5.m; sourceTree = "<group>"; };
+		1AC086461686B7760094CFB3 /* Toolbar.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Toolbar.tiff; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,7 +107,11 @@
 			children = (
 				1AC086251686A7F80094CFB3 /* MNAppDelegate.h */,
 				1AC086261686A7F80094CFB3 /* MNAppDelegate.m */,
+				1AC086301686A8B00094CFB3 /* MNDrawingView.h */,
+				1AC086311686A8B00094CFB3 /* MNDrawingView.m */,
+				1AC086451686AD2D0094CFB3 /* Checkbox Backgrounds */,
 				1AC086281686A7F80094CFB3 /* MainMenu.xib */,
+				1AC086461686B7760094CFB3 /* Toolbar.tiff */,
 				1AC0861A1686A7F80094CFB3 /* Supporting Files */,
 			);
 			path = EchoNestVisualizer;
@@ -100,6 +127,25 @@
 				1AC086221686A7F80094CFB3 /* Credits.rtf */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		1AC086451686AD2D0094CFB3 /* Checkbox Backgrounds */ = {
+			isa = PBXGroup;
+			children = (
+				1AC086331686AD270094CFB3 /* MNCheckboxBackground.h */,
+				1AC086341686AD270094CFB3 /* MNCheckboxBackground.m */,
+				1AC086351686AD270094CFB3 /* MNCheckboxBackground1.h */,
+				1AC086361686AD270094CFB3 /* MNCheckboxBackground1.m */,
+				1AC086371686AD270094CFB3 /* MNCheckboxBackground2.h */,
+				1AC086381686AD270094CFB3 /* MNCheckboxBackground2.m */,
+				1AC086391686AD270094CFB3 /* MNCheckboxBackground3.h */,
+				1AC0863A1686AD270094CFB3 /* MNCheckboxBackground3.m */,
+				1AC0863B1686AD270094CFB3 /* MNCheckboxBackground4.h */,
+				1AC0863C1686AD270094CFB3 /* MNCheckboxBackground4.m */,
+				1AC0863D1686AD270094CFB3 /* MNCheckboxBackground5.h */,
+				1AC0863E1686AD270094CFB3 /* MNCheckboxBackground5.m */,
+			);
+			name = "Checkbox Backgrounds";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -157,6 +203,7 @@
 				1AC0861E1686A7F80094CFB3 /* InfoPlist.strings in Resources */,
 				1AC086241686A7F80094CFB3 /* Credits.rtf in Resources */,
 				1AC0862A1686A7F80094CFB3 /* MainMenu.xib in Resources */,
+				1AC086471686B7760094CFB3 /* Toolbar.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -169,6 +216,13 @@
 			files = (
 				1AC086201686A7F80094CFB3 /* main.m in Sources */,
 				1AC086271686A7F80094CFB3 /* MNAppDelegate.m in Sources */,
+				1AC086321686A8B00094CFB3 /* MNDrawingView.m in Sources */,
+				1AC0863F1686AD270094CFB3 /* MNCheckboxBackground.m in Sources */,
+				1AC086401686AD270094CFB3 /* MNCheckboxBackground1.m in Sources */,
+				1AC086411686AD270094CFB3 /* MNCheckboxBackground2.m in Sources */,
+				1AC086421686AD270094CFB3 /* MNCheckboxBackground3.m in Sources */,
+				1AC086431686AD270094CFB3 /* MNCheckboxBackground4.m in Sources */,
+				1AC086441686AD270094CFB3 /* MNCheckboxBackground5.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
