@@ -46,20 +46,6 @@
 
 @end
 
-/*
- - (void)currentTimeChange:(NSNotification *)aNotification
- {
- // Current time changed externally while where sending time updates based on the timer. We need to change some things to continue functioning
- if(playTimer && (int)([data currentTime] * 1000) != (int)(newTimeForPlayTimer * 1000))
- {
- playButtonStartDate = [NSDate date];
- playButtonStartTime = [data currentTime];
- [data setCurrentSequenceIsPlaying:NO];
- [data setCurrentSequenceIsPlaying:YES];
- }
- }
- */
-
 
 @implementation MNDrawingView
 
@@ -646,6 +632,9 @@
         frameWidth = [[self superview] frame].size.width;
     }
     [self setFrame:NSMakeRect(0.0, 0.0, frameWidth, frameHeight)];
+    
+    // Check for timelineBar mouse clicks
+    [self timelineBarMouseChecking];
     
     // Draw the timeline on top of everything
     [self drawTimelineBar];
