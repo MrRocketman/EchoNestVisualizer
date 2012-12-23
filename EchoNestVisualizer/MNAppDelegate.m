@@ -36,6 +36,34 @@
     }
 }
 
+- (IBAction)chooseAudioClipFileButtonPress:(id)sender
+{
+    [self loadOpenPanel];
+    [openPanel setAllowedFileTypes:[NSArray arrayWithObjects:@"lmsd", nil]];
+    
+    [openPanel setDirectoryURL:[NSURL fileURLWithPathComponents:@[@"~", @"Library", @"Application Support", @"Light Master", @"audioClipLibrary"]]];
+    
+    [openPanel beginWithCompletionHandler:^(NSInteger result)
+     {
+         if(result == NSFileHandlingPanelOKButton)
+         {
+             NSString *filePath = [[openPanel URL] path];
+             [audioClipFileLabel setStringValue:[filePath lastPathComponent]];
+             
+             NSDictionary *audioClip = [[NSDictionary alloc] initWithContentsOfFile:filePath];
+             NSString *audioAnalysisFilePath = [NSString stringWithFormat:@"%@.lmaa", [filePath stringByDeletingPathExtension]];
+             NSString *audioFileFilePath = [NSString stringWithFormat:@"%@/%@", [filePath stringByDeletingLastPathComponent], [[audioClip objectForKey:@"filePathToAudioFile"] lastPathComponent]];
+             
+             [audioFileLabel setStringValue:[audioFileFilePath lastPathComponent]];
+             [audioAnalysisLabel setStringValue:[audioAnalysisFilePath lastPathComponent]];
+             
+             [[NSNotificationCenter defaultCenter] postNotificationName:@"SetAudioAnalysisFilePath" object:audioAnalysisFilePath];
+             [[NSNotificationCenter defaultCenter] postNotificationName:@"SetAudioFilePath" object:audioFileFilePath];
+         }
+     }
+     ];
+}
+
 - (IBAction)chooseAudioFileButtonPress:(id)sender
 {
     [self loadOpenPanel];
@@ -67,14 +95,7 @@
     [self loadOpenPanel];
     [openPanel setAllowedFileTypes:[NSArray arrayWithObjects:@"lmaa", nil]];
     
-    if(previousOpenPanelDirectory == nil)
-    {
-        [openPanel setDirectoryURL:[NSURL fileURLWithPathComponents:@[@"~", @"Library", @"Application Support", @"Light Master", @"audioClipLibrary"]]];
-    }
-    else
-    {
-        [openPanel setDirectoryURL:[NSURL fileURLWithPath:previousOpenPanelDirectory]];
-    }
+    [openPanel setDirectoryURL:[NSURL fileURLWithPathComponents:@[@"~", @"Library", @"Application Support", @"Light Master", @"audioClipLibrary"]]];
     
     [openPanel beginWithCompletionHandler:^(NSInteger result)
      {

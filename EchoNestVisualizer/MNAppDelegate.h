@@ -13,6 +13,7 @@
     NSOpenPanel *openPanel;
     NSString *previousOpenPanelDirectory;
     
+    IBOutlet NSTextField *audioClipFileLabel;
     IBOutlet NSTextField *audioFileLabel;
     IBOutlet NSTextField *audioAnalysisLabel;
     
@@ -21,6 +22,7 @@
 
 @property (assign) IBOutlet NSWindow *window;
 
+- (IBAction)chooseAudioClipFileButtonPress:(id)sender;
 - (IBAction)chooseAudioFileButtonPress:(id)sender;
 - (IBAction)chooseAudioAnalysisButtonPress:(id)sender;
 
