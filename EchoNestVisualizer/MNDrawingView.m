@@ -59,6 +59,12 @@
         topBarBackgroundImage = [NSImage imageNamed:@"Toolbar.tiff"];
         [(NSScrollView *)[self superview] setPostsBoundsChangedNotifications:YES];
         self.zoomLevel = 3.0;
+        self.drawTime = YES;
+        self.drawSections = YES;
+        self.drawBars = YES;
+        self.drawBeats = YES;
+        self.drawTatums = YES;
+        self.drawSegments = YES;
         
         // Register for the notifications on the scrollView
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(scrollViewBoundsDidChangeNotification:) name:@"NSViewBoundsDidChangeNotification" object:nil];
@@ -545,7 +551,7 @@
             //NSRect markerLineFrame = NSMakeRect([self timeToX:[[[sections objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]], scrollViewOrigin.y, 3, superViewFrame.size.height - TOP_BAR_HEIGHT);
             //[[NSColor yellowColor] set];
             //NSRectFill(markerLineFrame);
-            [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor yellowColor] andStroke:YES];
+            [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor colorWithCalibratedRed:1.0 green:1.0 blue:0.0 alpha:[[section objectForKey:@"confidence"] floatValue]] andStroke:YES];
             
             visibleSectionIndex ++;
         }
@@ -564,21 +570,52 @@
     
     int visibleSectionIndex = 0;
     NSArray *bars = [audioAnalysis objectForKey:@"bars"];
+    NSDictionary *bar;
+    float startTime = 0;
+    float duration = 0;
     // Find the first visible section (since the data is sorted)
-    while(visibleSectionIndex < [bars count] && (timeAtLeftEdge - 1 >= [[[bars objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue] || timeAtRightEdge + 1 <= [[[bars objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]))
+    while(visibleSectionIndex < [bars count])
     {
-        visibleSectionIndex ++;
+        bar = [bars objectAtIndex:visibleSectionIndex];
+        startTime = [[bar objectForKey:@"start"] floatValue];
+        duration = [[bar objectForKey:@"duration"] floatValue];
+        if(timeAtLeftEdge - 1 >= startTime + duration || timeAtRightEdge + 1 <= startTime)
+        {
+            visibleSectionIndex ++;
+        }
+        else
+        {
+            break;
+        }
     }
     
     // Now draw the visible sections (since the data is sorted)
-    while(visibleSectionIndex < [bars count] && (timeAtLeftEdge - 1 < [[[bars objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue] && timeAtRightEdge + 1 > [[[bars objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]))
+    while(visibleSectionIndex < [bars count])
     {
-        // Draw grid lines
-        NSRect markerLineFrame = NSMakeRect([self timeToX:[[[bars objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]], scrollViewOrigin.y, 2, superViewFrame.size.height - TOP_BAR_HEIGHT);
-        [[NSColor orangeColor] set];
-        NSRectFill(markerLineFrame);
-        
-        visibleSectionIndex ++;
+        bar = [bars objectAtIndex:visibleSectionIndex];
+        startTime = [[bar objectForKey:@"start"] floatValue];
+        duration = [[bar objectForKey:@"duration"] floatValue];
+        if(timeAtLeftEdge - 1 < startTime + duration && timeAtRightEdge + 1 > startTime)
+        {
+            // Draw grid lines
+            float endTime = startTime + duration;
+            float x, y, width , height;
+            x  = [self timeToX:startTime];
+            y = self.frame.size.height - trackIndex * TRACK_ITEM_HEIGHT - 1 * TRACK_ITEM_HEIGHT - TOP_BAR_HEIGHT + 1;
+            width = [self widthForTimeInterval:endTime - startTime] - 3;
+            height = TRACK_ITEM_HEIGHT - 2;
+            
+            //NSRect markerLineFrame = NSMakeRect([self timeToX:[[[sections objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]], scrollViewOrigin.y, 3, superViewFrame.size.height - TOP_BAR_HEIGHT);
+            //[[NSColor yellowColor] set];
+            //NSRectFill(markerLineFrame);
+            [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor colorWithCalibratedRed:1.0 green:0.5 blue:0.0 alpha:[[bar objectForKey:@"confidence"] floatValue]] andStroke:YES];
+            
+            visibleSectionIndex ++;
+        }
+        else
+        {
+            break;
+        }
     }
 }
 
@@ -590,21 +627,52 @@
     
     int visibleSectionIndex = 0;
     NSArray *beats = [audioAnalysis objectForKey:@"beats"];
+    NSDictionary *beat;
+    float startTime = 0;
+    float duration = 0;
     // Find the first visible section (since the data is sorted)
-    while(visibleSectionIndex < [beats count] && (timeAtLeftEdge - 1 >= [[[beats objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue] || timeAtRightEdge + 1 <= [[[beats objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]))
+    while(visibleSectionIndex < [beats count])
     {
-        visibleSectionIndex ++;
+        beat = [beats objectAtIndex:visibleSectionIndex];
+        startTime = [[beat objectForKey:@"start"] floatValue];
+        duration = [[beat objectForKey:@"duration"] floatValue];
+        if(timeAtLeftEdge - 1 >= startTime + duration || timeAtRightEdge + 1 <= startTime)
+        {
+            visibleSectionIndex ++;
+        }
+        else
+        {
+            break;
+        }
     }
     
     // Now draw the visible sections (since the data is sorted)
-    while(visibleSectionIndex < [beats count] && (timeAtLeftEdge - 1 < [[[beats objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue] && timeAtRightEdge + 1 > [[[beats objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]))
+    while(visibleSectionIndex < [beats count])
     {
-        // Draw grid lines
-        NSRect markerLineFrame = NSMakeRect([self timeToX:[[[beats objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]], scrollViewOrigin.y, 1, superViewFrame.size.height - TOP_BAR_HEIGHT);
-        [[NSColor whiteColor] set];
-        NSRectFill(markerLineFrame);
-        
-        visibleSectionIndex ++;
+        beat = [beats objectAtIndex:visibleSectionIndex];
+        startTime = [[beat objectForKey:@"start"] floatValue];
+        duration = [[beat objectForKey:@"duration"] floatValue];
+        if(timeAtLeftEdge - 1 < startTime + duration && timeAtRightEdge + 1 > startTime)
+        {
+            // Draw grid lines
+            float endTime = startTime + duration;
+            float x, y, width , height;
+            x  = [self timeToX:startTime];
+            y = self.frame.size.height - trackIndex * TRACK_ITEM_HEIGHT - 1 * TRACK_ITEM_HEIGHT - TOP_BAR_HEIGHT + 1;
+            width = [self widthForTimeInterval:endTime - startTime] - 3;
+            height = TRACK_ITEM_HEIGHT - 2;
+            
+            //NSRect markerLineFrame = NSMakeRect([self timeToX:[[[sections objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]], scrollViewOrigin.y, 3, superViewFrame.size.height - TOP_BAR_HEIGHT);
+            //[[NSColor yellowColor] set];
+            //NSRectFill(markerLineFrame);
+            [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor colorWithCalibratedRed:1.0 green:1.0 blue:1.0 alpha:[[beat objectForKey:@"confidence"] floatValue]] andStroke:YES];
+            
+            visibleSectionIndex ++;
+        }
+        else
+        {
+            break;
+        }
     }
 }
 
@@ -616,21 +684,52 @@
     
     int visibleSectionIndex = 0;
     NSArray *tatums = [audioAnalysis objectForKey:@"tatums"];
+    NSDictionary *tatum;
+    float startTime = 0;
+    float duration = 0;
     // Find the first visible section (since the data is sorted)
-    while(visibleSectionIndex < [tatums count] && (timeAtLeftEdge - 1 >= [[[tatums objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue] || timeAtRightEdge + 1 <= [[[tatums objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]))
+    while(visibleSectionIndex < [tatums count])
     {
-        visibleSectionIndex ++;
+        tatum = [tatums objectAtIndex:visibleSectionIndex];
+        startTime = [[tatum objectForKey:@"start"] floatValue];
+        duration = [[tatum objectForKey:@"duration"] floatValue];
+        if(timeAtLeftEdge - 1 >= startTime + duration || timeAtRightEdge + 1 <= startTime)
+        {
+            visibleSectionIndex ++;
+        }
+        else
+        {
+            break;
+        }
     }
     
     // Now draw the visible sections (since the data is sorted)
-    while(visibleSectionIndex < [tatums count] && (timeAtLeftEdge - 1 < [[[tatums objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue] && timeAtRightEdge + 1 > [[[tatums objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]))
+    while(visibleSectionIndex < [tatums count])
     {
-        // Draw grid lines
-        NSRect markerLineFrame = NSMakeRect([self timeToX:[[[tatums objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]], scrollViewOrigin.y, 1, superViewFrame.size.height - TOP_BAR_HEIGHT);
-        [[NSColor cyanColor] set];
-        NSRectFill(markerLineFrame);
-        
-        visibleSectionIndex ++;
+        tatum = [tatums objectAtIndex:visibleSectionIndex];
+        startTime = [[tatum objectForKey:@"start"] floatValue];
+        duration = [[tatum objectForKey:@"duration"] floatValue];
+        if(timeAtLeftEdge - 1 < startTime + duration && timeAtRightEdge + 1 > startTime)
+        {
+            // Draw grid lines
+            float endTime = startTime + duration;
+            float x, y, width , height;
+            x  = [self timeToX:startTime];
+            y = self.frame.size.height - trackIndex * TRACK_ITEM_HEIGHT - 1 * TRACK_ITEM_HEIGHT - TOP_BAR_HEIGHT + 1;
+            width = [self widthForTimeInterval:endTime - startTime] - 3;
+            height = TRACK_ITEM_HEIGHT - 2;
+            
+            //NSRect markerLineFrame = NSMakeRect([self timeToX:[[[sections objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]], scrollViewOrigin.y, 3, superViewFrame.size.height - TOP_BAR_HEIGHT);
+            //[[NSColor yellowColor] set];
+            //NSRectFill(markerLineFrame);
+            [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor colorWithCalibratedRed:0.0 green:1.0 blue:1.0 alpha:[[tatum objectForKey:@"confidence"] floatValue]] andStroke:YES];
+            
+            visibleSectionIndex ++;
+        }
+        else
+        {
+            break;
+        }
     }
 }
 
@@ -642,21 +741,52 @@
     
     int visibleSectionIndex = 0;
     NSArray *segments = [audioAnalysis objectForKey:@"segments"];
+    NSDictionary *segment;
+    float startTime = 0;
+    float duration = 0;
     // Find the first visible section (since the data is sorted)
-    while(visibleSectionIndex < [segments count] && (timeAtLeftEdge - 1 >= [[[segments objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue] || timeAtRightEdge + 1 <= [[[segments objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]))
+    while(visibleSectionIndex < [segments count])
     {
-        visibleSectionIndex ++;
+        segment = [segments objectAtIndex:visibleSectionIndex];
+        startTime = [[segment objectForKey:@"start"] floatValue];
+        duration = [[segment objectForKey:@"duration"] floatValue];
+        if(timeAtLeftEdge - 1 >= startTime + duration || timeAtRightEdge + 1 <= startTime)
+        {
+            visibleSectionIndex ++;
+        }
+        else
+        {
+            break;
+        }
     }
     
     // Now draw the visible sections (since the data is sorted)
-    while(visibleSectionIndex < [segments count] && (timeAtLeftEdge - 1 < [[[segments objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue] && timeAtRightEdge + 1 > [[[segments objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]))
+    while(visibleSectionIndex < [segments count])
     {
-        // Draw grid lines
-        NSRect markerLineFrame = NSMakeRect([self timeToX:[[[segments objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]], scrollViewOrigin.y, 1, superViewFrame.size.height - TOP_BAR_HEIGHT);
-        [[NSColor magentaColor] set];
-        NSRectFill(markerLineFrame);
-        
-        visibleSectionIndex ++;
+        segment = [segments objectAtIndex:visibleSectionIndex];
+        startTime = [[segment objectForKey:@"start"] floatValue];
+        duration = [[segment objectForKey:@"duration"] floatValue];
+        if(timeAtLeftEdge - 1 < startTime + duration && timeAtRightEdge + 1 > startTime)
+        {
+            // Draw grid lines
+            float endTime = startTime + duration;
+            float x, y, width , height;
+            x  = [self timeToX:startTime];
+            y = self.frame.size.height - trackIndex * TRACK_ITEM_HEIGHT - 1 * TRACK_ITEM_HEIGHT - TOP_BAR_HEIGHT + 1;
+            width = [self widthForTimeInterval:endTime - startTime] - 3;
+            height = TRACK_ITEM_HEIGHT - 2;
+            
+            //NSRect markerLineFrame = NSMakeRect([self timeToX:[[[sections objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]], scrollViewOrigin.y, 3, superViewFrame.size.height - TOP_BAR_HEIGHT);
+            //[[NSColor yellowColor] set];
+            //NSRectFill(markerLineFrame);
+            [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor colorWithCalibratedRed:1.0 green:0.0 blue:1.0 alpha:[[segment objectForKey:@"confidence"] floatValue]] andStroke:YES];
+            
+            visibleSectionIndex ++;
+        }
+        else
+        {
+            break;
+        }
     }
 }
 
@@ -687,9 +817,6 @@
     // Check for timelineBar mouse clicks
     [self timelineBarMouseChecking];
     
-    // Draw the timeline on top of everything
-    [self drawTimelineBar];
-    
     // Draw the audio analysis data
     if(![[NSNull null] isEqual:self.audioAnalysis])
     {
@@ -714,6 +841,9 @@
             [self drawSectionsAtTrackIndex:0];
         }
     }
+    
+    // Draw the timeline on top of everything
+    [self drawTimelineBar];
 }
 
 @end

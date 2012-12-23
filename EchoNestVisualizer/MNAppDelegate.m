@@ -21,7 +21,6 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     // Insert code here to initialize your application
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"TimeCheckbox" object:[NSNumber numberWithInt:1]];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateCurrentTime:) name:@"UpdateCurrentTime" object:nil];
 }
 

@@ -10,7 +10,7 @@
 
 // This is how many pixels per second there are are a zoom level of 1
 #define PIXEL_TO_ZOOM_RATIO 25
-#define TRACK_ITEM_HEIGHT 20.0
+#define TRACK_ITEM_HEIGHT 40.0
 #define TOP_BAR_HEIGHT 20.0
 #define AUTO_SCROLL_REFRESH_RATE 0.03
 #define BOX_CORNER_RADIUS 3.0
