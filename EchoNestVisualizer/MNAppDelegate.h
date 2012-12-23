@@ -40,5 +40,6 @@
 - (IBAction)segmentsCheckboxPress:(id)sender;
 - (IBAction)timbreCheckboxPress:(id)sender;
 - (IBAction)pitchCheckboxPress:(id)sender;
+- (IBAction)loudnessCheckboxPress:(id)sender;
 
 @end

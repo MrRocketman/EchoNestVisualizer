@@ -46,6 +46,7 @@ enum
     BOOL drawSegments;
     BOOL drawTimbre;
     BOOL drawPitch;
+    BOOL drawLoudness;
     int trackItemsCount;
     
     NSPoint scrollViewOrigin;
@@ -84,5 +85,6 @@ enum
 @property(assign) BOOL drawSegments;
 @property(assign) BOOL drawTimbre;
 @property(assign) BOOL drawPitch;
+@property(assign) BOOL drawLoudness;
 
 @end

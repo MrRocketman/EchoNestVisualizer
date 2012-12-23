@@ -26,6 +26,7 @@
 - (void)segmentsCheckbox:(NSNotification *)aNotification;
 - (void)timbreCheckbox:(NSNotification *)aNotification;
 - (void)pitchCheckbox:(NSNotification *)aNotification;
+- (void)loudnessCheckbox:(NSNotification *)aNotification;
 
 // Math Methods
 - (void)updateTimeAtLeftEdgeOfTimelineView:(NSTimer *)theTimer;
@@ -46,13 +47,14 @@
 - (void)drawTimbresAtTrackIndex:(int)trackIndex;
 - (void)drawPitchAverageAtTrackIndex:(int)trackIndex;
 - (void)drawPitchesAtTrackIndex:(int)trackIndex;
+- (void)drawLoudnessAtTrackIndex:(int)trackIndex;
 
 @end
 
 
 @implementation MNDrawingView
 
-@synthesize audioAnalysis, sound, timeAtLeftEdge, zoomLevel, isPlaying, drawTime, drawSections, drawBars, drawBeats, drawTatums, drawSegments, drawTimbre, drawPitch;
+@synthesize audioAnalysis, sound, timeAtLeftEdge, zoomLevel, isPlaying, drawTime, drawSections, drawBars, drawBeats, drawTatums, drawSegments, drawTimbre, drawPitch, drawLoudness;
 
 - (id)initWithCoder:(NSCoder *)aDecoder
 {
@@ -69,6 +71,7 @@
         self.drawSegments = YES;
         self.drawTimbre = YES;
         self.drawPitch = YES;
+        self.drawLoudness = YES;
         
         // Register for the notifications on the scrollView
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(scrollViewBoundsDidChangeNotification:) name:@"NSViewBoundsDidChangeNotification" object:nil];
@@ -86,6 +89,7 @@
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(segmentsCheckbox:) name:@"SegmentsCheckbox" object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(timbreCheckbox:) name:@"TimbreCheckbox" object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(pitchCheckbox:) name:@"PitchCheckbox" object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(loudnessCheckbox:) name:@"LoudnessCheckbox" object:nil];
         
         [self scrollViewBoundsDidChangeNotification:nil];
     }
@@ -233,6 +237,12 @@
 - (void)pitchCheckbox:(NSNotification *)aNotification
 {
     self.drawPitch = [[aNotification object] boolValue];
+    [self setNeedsDisplay:YES];
+}
+
+- (void)loudnessCheckbox:(NSNotification *)aNotification
+{
+    self.drawLoudness = [[aNotification object] boolValue];
     [self setNeedsDisplay:YES];
 }
 
@@ -850,6 +860,82 @@
     }
 }
 
+- (void)drawLoudnessAtTrackIndex:(int)trackIndex
+{
+    NSRect superViewFrame = [[self superview] frame];
+    float timeSpan = [self xToTime:[self timeToX:self.timeAtLeftEdge] + superViewFrame.size.width] - self.timeAtLeftEdge;
+    float timeAtRightEdge = timeAtLeftEdge + timeSpan;
+    
+    int visibleSectionIndex = 0;
+    NSArray *dataItems = [audioAnalysis objectForKey:@"segments"];
+    NSDictionary *data;
+    float x, y, width, height, endTime, startTime, duration, loudnessStart, loudnessMax, loudnessMaxTime;
+    // Find the first visible section (since the data is sorted)
+    while(visibleSectionIndex < [dataItems count])
+    {
+        data = [dataItems objectAtIndex:visibleSectionIndex];
+        startTime = [[data objectForKey:@"start"] floatValue];
+        duration = [[data objectForKey:@"duration"] floatValue];
+        if(timeAtLeftEdge - 1 >= startTime + duration || timeAtRightEdge + 1 <= startTime)
+        {
+            visibleSectionIndex ++;
+        }
+        else
+        {
+            break;
+        }
+    }
+    
+    // Set the font attributes
+    NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
+    NSFont *font = [NSFont fontWithName:@"Helvetica" size:10];
+    [attributes setObject:font forKey:NSFontAttributeName];
+    
+    // Now draw the visible sections (since the data is sorted)
+    while(visibleSectionIndex < [dataItems count])
+    {
+        data = [dataItems objectAtIndex:visibleSectionIndex];
+        startTime = [[data objectForKey:@"start"] floatValue];
+        duration = [[data objectForKey:@"duration"] floatValue];
+        if(timeAtLeftEdge - 1 < startTime + duration && timeAtRightEdge + 1 > startTime)
+        {
+            loudnessStart = ([[data objectForKey:@"loudness_start"] floatValue] + 60) / 60;
+            loudnessMax = ([[data objectForKey:@"loudness_max"] floatValue] + 60) / 60;
+            loudnessMaxTime = [[data objectForKey:@"loudness_max_time"] floatValue];
+            
+            // Loudness Start
+            endTime = startTime + duration;
+            x  = [self timeToX:startTime];
+            y = self.frame.size.height - trackIndex * TRACK_ITEM_HEIGHT - 1 * TRACK_ITEM_HEIGHT - TOP_BAR_HEIGHT + 1;
+            width = [self widthForTimeInterval:endTime - startTime] - 3;
+            height = TRACK_ITEM_HEIGHT - 2;
+            
+            [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor colorWithCalibratedRed:0.5 green:0.5 blue:0.0 alpha:loudnessStart] andStroke:YES];
+            
+            NSString *time = [NSString stringWithFormat:@"%.02f", loudnessStart];
+            [time drawInRect:NSMakeRect(x + 2, y, width, height) withAttributes:attributes];
+            
+            // Loudness max
+            endTime = startTime + duration;
+            x  = [self timeToX:startTime + loudnessMaxTime];
+            y = self.frame.size.height - (trackIndex + 1) * TRACK_ITEM_HEIGHT - 1 * TRACK_ITEM_HEIGHT - TOP_BAR_HEIGHT + 1;
+            width = [self widthForTimeInterval:endTime - startTime] - 3;
+            height = TRACK_ITEM_HEIGHT - 2;
+            
+            [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor colorWithCalibratedRed:0.5 green:0.5 blue:0.0 alpha:loudnessMax] andStroke:YES];
+            
+            time = [NSString stringWithFormat:@"%.02f", loudnessMax];
+            [time drawInRect:NSMakeRect(x + 2, y, width, height) withAttributes:attributes];
+            
+            visibleSectionIndex ++;
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+
 #pragma mark - Drawing
 
 - (void)drawRect:(NSRect)dirtyRect
@@ -918,6 +1004,11 @@
             trackItemsCount ++;
             [self drawPitchesAtTrackIndex:trackItemsCount];
             trackItemsCount += 12;
+        }
+        if(self.drawLoudness)
+        {
+            [self drawLoudnessAtTrackIndex:trackItemsCount];
+            trackItemsCount += 2;
         }
     }
     

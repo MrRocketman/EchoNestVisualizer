@@ -179,4 +179,9 @@
     [[NSNotificationCenter defaultCenter] postNotificationName:@"PitchCheckbox" object:[NSNumber numberWithInt:([sender state] == NSOnState ? 1 : 0)]];
 }
 
+- (IBAction)loudnessCheckboxPress:(id)sender
+{
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"LoudnessCheckbox" object:[NSNumber numberWithInt:([sender state] == NSOnState ? 1 : 0)]];
+}
+
 @end
