@@ -36,6 +36,7 @@
 // Helper Drawing Methods
 - (void)drawTimelineBar;
 - (void)drawInvertedTriangleAndLineWithTipPoint:(NSPoint)point width:(int)width andHeight:(int)height;
+- (void)drawRect:(NSRect)aRect withCornerRadius:(float)radius fillColor:(NSColor *)color andStroke:(BOOL)yesOrNo;
 
 // Audio analysis drawing methods
 - (void)drawSectionsAtTrackIndex:(int)trackIndex;
@@ -57,7 +58,7 @@
     {
         topBarBackgroundImage = [NSImage imageNamed:@"Toolbar.tiff"];
         [(NSScrollView *)[self superview] setPostsBoundsChangedNotifications:YES];
-        self.zoomLevel = 1.0;
+        self.zoomLevel = 3.0;
         
         // Register for the notifications on the scrollView
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(scrollViewBoundsDidChangeNotification:) name:@"NSViewBoundsDidChangeNotification" object:nil];
@@ -97,6 +98,8 @@
         [self pause:nil];
         [self play:nil];
     }
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"UpdateCurrentTime" object:[NSNumber numberWithFloat:self.currentTime]];
 }
 
 #pragma mark - Notifications
@@ -364,6 +367,7 @@
     newTimeForPlayTimer = playButtonStartTime + timeDifference;
     self.currentTime = newTimeForPlayTimer;
     [self scrollPoint:NSMakePoint([self timeToX:newTimeForPlayTimer] - self.superview.frame.size.width / 2, [(NSClipView *)[self superview] documentVisibleRect].origin.y)];
+    
     [self setNeedsDisplay:YES];
 }
 
@@ -479,6 +483,20 @@
     NSRectFill(markerLineFrame);
 }
 
+- (void)drawRect:(NSRect)aRect withCornerRadius:(float)radius fillColor:(NSColor *)color andStroke:(BOOL)yesOrNo
+{
+    NSBezierPath *thePath = [NSBezierPath bezierPathWithRoundedRect:aRect xRadius:radius yRadius:radius];
+    
+	[color setFill];
+    [[NSColor whiteColor] setStroke];
+	
+	if(yesOrNo)
+    {
+        [thePath stroke];
+    }
+	[thePath fill];
+}
+
 #pragma mark - Audio analysis drawing methods
 
 - (void)drawSectionsAtTrackIndex:(int)trackIndex
@@ -489,21 +507,52 @@
     
     int visibleSectionIndex = 0;
     NSArray *sections = [audioAnalysis objectForKey:@"sections"];
+    NSDictionary *section;
+    float startTime = 0;
+    float duration = 0;
     // Find the first visible section (since the data is sorted)
-    while(visibleSectionIndex < [sections count] && (timeAtLeftEdge - 1 >= [[[sections objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue] || timeAtRightEdge + 1 <= [[[sections objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]))
+    while(visibleSectionIndex < [sections count])
     {
-        visibleSectionIndex ++;
+        section = [sections objectAtIndex:visibleSectionIndex];
+        startTime = [[section objectForKey:@"start"] floatValue];
+        duration = [[section objectForKey:@"duration"] floatValue];
+        if(timeAtLeftEdge - 1 >= startTime + duration || timeAtRightEdge + 1 <= startTime)
+        {
+            visibleSectionIndex ++;
+        }
+        else
+        {
+            break;
+        }
     }
     
     // Now draw the visible sections (since the data is sorted)
-    while(visibleSectionIndex < [sections count] && (timeAtLeftEdge - 1 < [[[sections objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue] && timeAtRightEdge + 1 > [[[sections objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]))
+    while(visibleSectionIndex < [sections count])
     {
-        // Draw grid lines
-        NSRect markerLineFrame = NSMakeRect([self timeToX:[[[sections objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]], scrollViewOrigin.y, 3, superViewFrame.size.height - TOP_BAR_HEIGHT);
-        [[NSColor yellowColor] set];
-        NSRectFill(markerLineFrame);
-        
-        visibleSectionIndex ++;
+        section = [sections objectAtIndex:visibleSectionIndex];
+        startTime = [[section objectForKey:@"start"] floatValue];
+        duration = [[section objectForKey:@"duration"] floatValue];
+        if(timeAtLeftEdge - 1 < startTime + duration && timeAtRightEdge + 1 > startTime)
+        {
+            // Draw grid lines
+            float endTime = startTime + duration;
+            float x, y, width , height;
+            x  = [self timeToX:startTime];
+            y = self.frame.size.height - trackIndex * TRACK_ITEM_HEIGHT - 1 * TRACK_ITEM_HEIGHT - TOP_BAR_HEIGHT + 1;
+            width = [self widthForTimeInterval:endTime - startTime] - 3;
+            height = TRACK_ITEM_HEIGHT - 2;
+            
+            //NSRect markerLineFrame = NSMakeRect([self timeToX:[[[sections objectAtIndex:visibleSectionIndex] objectForKey:@"start"] floatValue]], scrollViewOrigin.y, 3, superViewFrame.size.height - TOP_BAR_HEIGHT);
+            //[[NSColor yellowColor] set];
+            //NSRectFill(markerLineFrame);
+            [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor yellowColor] andStroke:YES];
+            
+            visibleSectionIndex ++;
+        }
+        else
+        {
+            break;
+        }
     }
 }
 
@@ -632,6 +681,8 @@
         frameWidth = [[self superview] frame].size.width;
     }
     [self setFrame:NSMakeRect(0.0, 0.0, frameWidth, frameHeight)];
+    [[NSColor darkGrayColor] setFill];
+    NSRectFill(NSMakeRect(0.0, 0.0, frameWidth, frameHeight));
     
     // Check for timelineBar mouse clicks
     [self timelineBarMouseChecking];

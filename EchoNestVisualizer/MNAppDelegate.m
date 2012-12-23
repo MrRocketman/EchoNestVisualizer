@@ -11,6 +11,7 @@
 @interface MNAppDelegate()
 
 - (void)loadOpenPanel;
+- (void)updateCurrentTime:(NSNotification *)aNotification;
 
 @end
 
@@ -21,6 +22,7 @@
 {
     // Insert code here to initialize your application
     [[NSNotificationCenter defaultCenter] postNotificationName:@"TimeCheckbox" object:[NSNumber numberWithInt:1]];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateCurrentTime:) name:@"UpdateCurrentTime" object:nil];
 }
 
 - (void)loadOpenPanel
@@ -34,6 +36,11 @@
         [openPanel setResolvesAliases:YES];
         [openPanel setAllowsMultipleSelection:NO];
     }
+}
+
+- (void)updateCurrentTime:(NSNotification *)aNotification
+{
+    [currentTimeLabel setStringValue:[NSString stringWithFormat:@"%.03f", [[aNotification object] floatValue]]];
 }
 
 - (IBAction)chooseAudioClipFileButtonPress:(id)sender

@@ -17,6 +17,8 @@
     IBOutlet NSTextField *audioFileLabel;
     IBOutlet NSTextField *audioAnalysisLabel;
     
+    IBOutlet NSTextField *currentTimeLabel;
+    
     IBOutlet NSButton *playPauseButton;
 }
 
