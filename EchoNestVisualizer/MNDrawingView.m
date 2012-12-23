@@ -14,8 +14,10 @@
 - (void)scrollViewBoundsDidChangeNotification:(NSNotification *)notification;
 - (void)setAudioFilePath:(NSNotification *)aNotification;
 - (void)setAudioAnalysisFilePath:(NSNotification *)aNotification;
+- (void)skipBack:(NSNotification *)aNotification;
 - (void)play:(NSNotification *)aNotification;
 - (void)pause:(NSNotification *)aNotification;
+- (void)zoomChange:(NSNotification *)aNotification;
 - (void)timeCheckbox:(NSNotification *)aNotification;
 - (void)sectionsCheckbox:(NSNotification *)aNotification;
 - (void)barsCheckbox:(NSNotification *)aNotification;
@@ -29,6 +31,7 @@
 - (int)timeToX:(float)time;
 - (float)xToTime:(int)x;
 - (int)widthForTimeInterval:(float)timeInterval;
+- (void)playTimerFire:(NSTimer *)theTimer;
 
 // Helper Drawing Methods
 - (void)drawTimelineBar;
@@ -43,10 +46,24 @@
 
 @end
 
+/*
+ - (void)currentTimeChange:(NSNotification *)aNotification
+ {
+ // Current time changed externally while where sending time updates based on the timer. We need to change some things to continue functioning
+ if(playTimer && (int)([data currentTime] * 1000) != (int)(newTimeForPlayTimer * 1000))
+ {
+ playButtonStartDate = [NSDate date];
+ playButtonStartTime = [data currentTime];
+ [data setCurrentSequenceIsPlaying:NO];
+ [data setCurrentSequenceIsPlaying:YES];
+ }
+ }
+ */
+
 
 @implementation MNDrawingView
 
-@synthesize audioAnalysis, sound, currentTime, timeAtLeftEdge, zoomLevel, isPlaying, drawTime, drawSections, drawBars, drawBeats, drawTatums, drawSegments;
+@synthesize audioAnalysis, sound, timeAtLeftEdge, zoomLevel, isPlaying, drawTime, drawSections, drawBars, drawBeats, drawTatums, drawSegments;
 
 - (id)initWithCoder:(NSCoder *)aDecoder
 {
@@ -60,8 +77,10 @@
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(scrollViewBoundsDidChangeNotification:) name:@"NSViewBoundsDidChangeNotification" object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(setAudioFilePath:) name:@"SetAudioFilePath" object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(setAudioAnalysisFilePath:) name:@"SetAudioAnalysisFilePath" object:nil];
+                [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(skipBack:) name:@"SkipBack" object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(play:) name:@"Play" object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(pause:) name:@"Pause" object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(zoomChange:) name:@"ZoomChange" object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(timeCheckbox:) name:@"TimeCheckbox" object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sectionsCheckbox:) name:@"SectionsCheckbox" object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(barsCheckbox:) name:@"BarsCheckbox" object:nil];
@@ -73,6 +92,25 @@
     }
     
     return self;
+}
+
+- (float)currentTime
+{
+    return currentTime;
+}
+
+- (void)setCurrentTime:(float)newTime
+{
+    currentTime = newTime;
+    
+    if(playTimer && (int)([self currentTime] * 1000) != (int)(newTimeForPlayTimer * 1000))
+    {
+        playButtonStartDate = [NSDate date];
+        playButtonStartTime = [self currentTime];
+        // Restart the sounds
+        [self pause:nil];
+        [self play:nil];
+    }
 }
 
 #pragma mark - Notifications
@@ -94,23 +132,7 @@
     [sound play];
     [sound stop];
     
-    // Set the Frame
-    int trackItemsCount = 19;
-    int frameHeight = 0;
-    int frameWidth = [self timeToX:[self.sound duration]];
-    if(trackItemsCount * TRACK_ITEM_HEIGHT + TOP_BAR_HEIGHT > [[self superview] frame].size.height)
-    {
-        frameHeight = trackItemsCount * TRACK_ITEM_HEIGHT + TOP_BAR_HEIGHT;
-    }
-    else
-    {
-        frameHeight = [[self superview] frame].size.height;
-    }
-    if(frameWidth <= [[self superview] frame].size.width)
-    {
-        frameWidth = [[self superview] frame].size.width;
-    }
-    [self setFrame:NSMakeRect(0.0, 0.0, frameWidth, frameHeight)];
+    [self setNeedsDisplay:YES];
 }
 
 - (void)setAudioAnalysisFilePath:(NSNotification *)aNotification
@@ -120,9 +142,22 @@
     [self setNeedsDisplay:YES];
 }
 
+- (void)skipBack:(NSNotification *)aNotification
+{
+    self.currentTime = 0.0;
+    [self scrollPoint:NSMakePoint([self timeToX:0.0], [(NSClipView *)[self superview] documentVisibleRect].origin.y)];
+    [self setNeedsDisplay:YES];
+}
+
 - (void)play:(NSNotification *)aNotification
 {
+    // Start the timer
+    playTimer = [NSTimer scheduledTimerWithTimeInterval:0.01 target:self selector:@selector(playTimerFire:) userInfo:nil repeats:YES];
+    playButtonStartDate = [NSDate date];
+    playButtonStartTime = self.currentTime;
     self.isPlaying = YES;
+    
+    // Play the sound
     [sound setCurrentTime:self.currentTime];
     [sound play];
     
@@ -131,9 +166,24 @@
 
 - (void)pause:(NSNotification *)aNotification
 {
+    // Stop the timer
+    [playTimer invalidate];
+    playTimer = nil;
     self.isPlaying = NO;
-    [sound pause];
     
+    // Pause the sound
+    [sound stop];
+    
+    [self setNeedsDisplay:YES];
+}
+
+- (void)zoomChange:(NSNotification *)aNotification
+{
+    // This gives a much more linear feel to the zoom
+    self.zoomLevel = pow([[aNotification object] floatValue], 2) / 2;
+    
+    // Scroll to the new left edge point by x (the left edge time has not change, the x has because of zoon)
+    [self scrollPoint:NSMakePoint([self timeToX:self.timeAtLeftEdge], [(NSClipView *)[self superview] documentVisibleRect].origin.y)];
     [self setNeedsDisplay:YES];
 }
 
@@ -320,6 +370,15 @@
 - (int)widthForTimeInterval:(float)timeInterval
 {
 	return (timeInterval * zoomLevel * PIXEL_TO_ZOOM_RATIO);
+}
+
+- (void)playTimerFire:(NSTimer *)theTimer
+{
+    float timeDifference = [[NSDate date] timeIntervalSinceDate:playButtonStartDate];
+    newTimeForPlayTimer = playButtonStartTime + timeDifference;
+    self.currentTime = newTimeForPlayTimer;
+    [self scrollPoint:NSMakePoint([self timeToX:newTimeForPlayTimer] - self.superview.frame.size.width / 2, [(NSClipView *)[self superview] documentVisibleRect].origin.y)];
+    [self setNeedsDisplay:YES];
 }
 
 #pragma mark - Helper Drawing Methods
@@ -570,6 +629,24 @@
 
 - (void)drawRect:(NSRect)dirtyRect
 {
+    // Set the Frame
+    int trackItemsCount = 19;
+    int frameHeight = 0;
+    int frameWidth = [self timeToX:[self.sound duration]];
+    if(trackItemsCount * TRACK_ITEM_HEIGHT + TOP_BAR_HEIGHT > [[self superview] frame].size.height)
+    {
+        frameHeight = trackItemsCount * TRACK_ITEM_HEIGHT + TOP_BAR_HEIGHT;
+    }
+    else
+    {
+        frameHeight = [[self superview] frame].size.height;
+    }
+    if(frameWidth <= [[self superview] frame].size.width)
+    {
+        frameWidth = [[self superview] frame].size.width;
+    }
+    [self setFrame:NSMakeRect(0.0, 0.0, frameWidth, frameHeight)];
+    
     // Draw the timeline on top of everything
     [self drawTimelineBar];
     

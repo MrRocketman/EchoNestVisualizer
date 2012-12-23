@@ -24,7 +24,9 @@
 - (IBAction)chooseAudioFileButtonPress:(id)sender;
 - (IBAction)chooseAudioAnalysisButtonPress:(id)sender;
 
+- (IBAction)skipBackButtonPress:(id)sender;
 - (IBAction)playPauseButtonPress:(id)sender;
+- (IBAction)zoomChange:(id)sender;
 
 - (IBAction)timeCheckboxPress:(id)sender;
 - (IBAction)sectionsCheckboxPress:(id)sender;

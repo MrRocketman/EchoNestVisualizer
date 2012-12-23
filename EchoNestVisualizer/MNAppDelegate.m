@@ -88,6 +88,11 @@
      ];
 }
 
+- (IBAction)skipBackButtonPress:(id)sender
+{
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"SkipBack" object:nil];
+}
+
 - (IBAction)playPauseButtonPress:(id)sender
 {
     if([[playPauseButton title] isEqualToString:@"Play"])
@@ -100,6 +105,11 @@
         [[NSNotificationCenter defaultCenter] postNotificationName:@"Pause" object:nil];
         [playPauseButton setTitle:@"Play"];
     }
+}
+
+- (IBAction)zoomChange:(id)sender
+{
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"ZoomChange" object:[NSNumber numberWithFloat:[sender floatValue]]];
 }
 
 - (IBAction)timeCheckboxPress:(id)sender

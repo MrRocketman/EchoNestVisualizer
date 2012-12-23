@@ -58,6 +58,11 @@ enum
     int mouseDraggingEvent;
     BOOL autoscrollTimerIsRunning;
     BOOL currentTimeMarkerIsSelected;
+    
+    NSTimer *playTimer;
+    NSDate *playButtonStartDate;
+    float playButtonStartTime;
+    float newTimeForPlayTimer;
 }
 
 @property(strong) NSSound *sound;
