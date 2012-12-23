@@ -899,8 +899,8 @@
         duration = [[data objectForKey:@"duration"] floatValue];
         if(timeAtLeftEdge - 1 < startTime + duration && timeAtRightEdge + 1 > startTime)
         {
-            loudnessStart = ([[data objectForKey:@"loudness_start"] floatValue] + 60) / 60;
-            loudnessMax = ([[data objectForKey:@"loudness_max"] floatValue] + 60) / 60;
+            loudnessStart = ([[data objectForKey:@"loudness_start"] floatValue] + 60) / 120;
+            loudnessMax = ([[data objectForKey:@"loudness_max"] floatValue] + 60) / 120;
             loudnessMaxTime = [[data objectForKey:@"loudness_max_time"] floatValue];
             
             // Loudness Start
@@ -919,7 +919,7 @@
             endTime = startTime + duration;
             x  = [self timeToX:startTime + loudnessMaxTime];
             y = self.frame.size.height - (trackIndex + 1) * TRACK_ITEM_HEIGHT - 1 * TRACK_ITEM_HEIGHT - TOP_BAR_HEIGHT + 1;
-            width = [self widthForTimeInterval:endTime - startTime] - 3;
+            width = [self widthForTimeInterval:endTime - startTime - loudnessMaxTime] - 3;
             height = TRACK_ITEM_HEIGHT - 2;
             
             [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor colorWithCalibratedRed:0.5 green:0.5 blue:0.0 alpha:loudnessMax] andStroke:YES];
