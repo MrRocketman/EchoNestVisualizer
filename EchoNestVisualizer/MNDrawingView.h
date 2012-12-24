@@ -67,6 +67,19 @@ enum
     NSDate *playButtonStartDate;
     float playButtonStartTime;
     float newTimeForPlayTimer;
+    
+    float averageLoudness;
+    float minLoudness;
+    float maxLoudness;
+    float loudnessRange;
+    
+    float minTimbre[12];
+    float maxTimbre[12];
+    float timbreRange[12];
+    float *euclideanTimbreDistance;
+    float minEuclideanTimbreDistance;
+    float maxEuclideanTimbreDistance;
+    float euclideanTimbreDistanceRange;
 }
 
 @property(strong) NSSound *sound;

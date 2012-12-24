@@ -144,6 +144,92 @@
 {
     self.audioAnalysis = [[NSDictionary alloc] initWithContentsOfFile:[aNotification object]];
     
+    // Calculate the loudness range
+    NSArray *segments = [audioAnalysis objectForKey:@"segments"];
+    averageLoudness = [[[audioAnalysis objectForKey:@"track"] objectForKey:@"loudness"] floatValue];
+    NSLog(@"averageLoudness:%f", averageLoudness);
+    minLoudness = INT32_MAX;
+    maxLoudness = -INT32_MAX;
+    for(int currentSegmentIndex = 0; currentSegmentIndex < [segments count]; currentSegmentIndex ++)
+    {
+        NSDictionary *segment = [segments objectAtIndex:currentSegmentIndex];
+        float segmentLoudness = [[segment objectForKey:@"loudness_start"] floatValue];
+        
+        if(segmentLoudness > maxLoudness)
+        {
+            maxLoudness = segmentLoudness;
+        }
+        if(segmentLoudness < minLoudness && segmentLoudness >= -51.000)
+        {
+            minLoudness = segmentLoudness;
+        }
+    }
+    loudnessRange = maxLoudness - minLoudness;
+    NSLog(@"loudnessMin:%f max:%f range:%f", minLoudness, maxLoudness, loudnessRange);
+    
+    // Calculate the timbre range
+    memset(minTimbre, 10000, 12);
+    memset(maxTimbre, -10000, 12);
+    for(int currentSegmentIndex = 0; currentSegmentIndex < [segments count]; currentSegmentIndex ++)
+    {
+        NSDictionary *segment = [segments objectAtIndex:currentSegmentIndex];
+        
+        for(int timbreIndex = 0; timbreIndex < 12; timbreIndex ++)
+        {
+            float timbreValue = [[[segment objectForKey:@"timbre"] objectAtIndex:timbreIndex] floatValue];
+            
+            if(timbreValue > maxTimbre[timbreIndex])
+            {
+                maxTimbre[timbreIndex] = timbreValue;
+            }
+            if(timbreValue < minTimbre[timbreIndex])
+            {
+                minTimbre[timbreIndex] = timbreValue;
+            }
+        }
+    }
+    for(int timbreIndex = 0; timbreIndex < 12; timbreIndex ++)
+    {
+        timbreRange[timbreIndex] = maxTimbre[timbreIndex] - minTimbre[timbreIndex];
+        NSLog(@"timbre[%d] min:%f max:%f range:%f", timbreIndex, minTimbre[timbreIndex], maxTimbre[timbreIndex], timbreRange[timbreIndex]);
+    }
+    
+    // Calculate the euclidean distance for the timbre vectors
+    euclideanTimbreDistance = malloc([segments count] * sizeof(float));
+    memset(euclideanTimbreDistance, 0, [segments count]);
+    minEuclideanTimbreDistance = INT32_MAX;
+    maxEuclideanTimbreDistance = -INT32_MAX;
+    float euclideanDistanceBeforeSquareRooting;
+    for(int currentSegmentIndex = 0; currentSegmentIndex < [segments count] - 1; currentSegmentIndex ++)
+    {
+        NSDictionary *segment = [segments objectAtIndex:currentSegmentIndex];
+        //NSDictionary *nextSegment = [segments objectAtIndex:currentSegmentIndex + 1];
+        euclideanDistanceBeforeSquareRooting = 0;
+        
+        for(int timbreIndex = 0; timbreIndex < 12; timbreIndex ++)
+        {
+            float timbreValue = [[[segment objectForKey:@"timbre"] objectAtIndex:timbreIndex] floatValue];
+            //float nextTimbreValue = [[[nextSegment objectForKey:@"timbre"] objectAtIndex:timbreIndex] floatValue];
+            float nextTimbreValue = 0.0;
+            
+            euclideanDistanceBeforeSquareRooting += powf(timbreValue - nextTimbreValue, 2.0);
+        }
+        
+        euclideanTimbreDistance[currentSegmentIndex] = sqrtf(euclideanDistanceBeforeSquareRooting);
+        
+        // Calculate the min and max
+        if(euclideanTimbreDistance[currentSegmentIndex] > maxEuclideanTimbreDistance)
+        {
+            maxEuclideanTimbreDistance = euclideanTimbreDistance[currentSegmentIndex];
+        }
+        if(euclideanTimbreDistance[currentSegmentIndex] < minEuclideanTimbreDistance)
+        {
+            minEuclideanTimbreDistance = euclideanTimbreDistance[currentSegmentIndex];
+        }
+    }
+    euclideanTimbreDistanceRange = maxEuclideanTimbreDistance - minEuclideanTimbreDistance;
+    NSLog(@"euclideanTimbre min:%f max:%f range:%f", minEuclideanTimbreDistance, maxEuclideanTimbreDistance, euclideanTimbreDistanceRange);
+    
     [self setNeedsDisplay:YES];
 }
 
@@ -644,15 +730,15 @@
             width = [self widthForTimeInterval:endTime - startTime] - 3;
             height = TRACK_ITEM_HEIGHT - 2;
             confidence = [[data objectForKey:@"confidence"] floatValue];
-            NSArray *timbres = [data objectForKey:@"timbre"];
-            red = ([[timbres objectAtIndex:0] floatValue] + 120) / 240;
-            green = ([[timbres objectAtIndex:1] floatValue] + 120) / 240;
-            blue = ([[timbres objectAtIndex:2] floatValue] + 120) / 240;
+            //NSArray *timbres = [data objectForKey:@"timbre"];
+            //red = ([[timbres objectAtIndex:0] floatValue] + 120) / 240;
+            //green = ([[timbres objectAtIndex:1] floatValue] + 120) / 240;
+            //blue = ([[timbres objectAtIndex:2] floatValue] + 120) / 240;
             
-            [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor colorWithCalibratedRed:red green:green blue:blue alpha:confidence] andStroke:YES];
+            [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor colorWithCalibratedRed:(euclideanTimbreDistance[visibleSectionIndex] - minEuclideanTimbreDistance) / euclideanTimbreDistanceRange green:((euclideanTimbreDistance[visibleSectionIndex] - minEuclideanTimbreDistance) / euclideanTimbreDistanceRange) / 2 blue:((euclideanTimbreDistance[visibleSectionIndex] - minEuclideanTimbreDistance) / euclideanTimbreDistanceRange) / 2 alpha:0.7] andStroke:YES];
             
             // Draw the confidence
-            NSString *time = [NSString stringWithFormat:@"%.02f", confidence];
+            NSString *time = [NSString stringWithFormat:@"%.02f", (euclideanTimbreDistance[visibleSectionIndex] - minEuclideanTimbreDistance) / euclideanTimbreDistanceRange];
             [time drawInRect:NSMakeRect(x + 2, y, width, height) withAttributes:attributes];
             
             visibleSectionIndex ++;
@@ -711,12 +797,12 @@
                 y = self.frame.size.height - (trackIndex + timbreIndex) * TRACK_ITEM_HEIGHT - 1 * TRACK_ITEM_HEIGHT - TOP_BAR_HEIGHT + 1;
                 width = [self widthForTimeInterval:endTime - startTime] - 3;
                 height = TRACK_ITEM_HEIGHT - 2;
-                timbre = ([[timbres objectAtIndex:timbreIndex] floatValue] + 120) / 240;
+                timbre = [[timbres objectAtIndex:timbreIndex] floatValue];
                 
-                [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor colorWithCalibratedRed:1.0 green:0.5 blue:0.5 alpha:timbre] andStroke:YES];
+                [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor colorWithCalibratedRed:1.0 green:0.5 blue:0.5 alpha:(timbre - minTimbre[timbreIndex]) / timbreRange[timbreIndex]] andStroke:YES];
                 
                 // Draw the confidence
-                NSString *time = [NSString stringWithFormat:@"%.02f", timbre];
+                NSString *time = [NSString stringWithFormat:@"%.02f", (timbre - minTimbre[timbreIndex]) / timbreRange[timbreIndex]];
                 [time drawInRect:NSMakeRect(x + 2, y, width, height) withAttributes:attributes];
             }
             
@@ -899,8 +985,8 @@
         duration = [[data objectForKey:@"duration"] floatValue];
         if(timeAtLeftEdge - 1 < startTime + duration && timeAtRightEdge + 1 > startTime)
         {
-            loudnessStart = ([[data objectForKey:@"loudness_start"] floatValue] + 60) / 120;
-            loudnessMax = ([[data objectForKey:@"loudness_max"] floatValue] + 60) / 120;
+            loudnessStart = [[data objectForKey:@"loudness_start"] floatValue];
+            loudnessMax = [[data objectForKey:@"loudness_max"] floatValue];
             loudnessMaxTime = [[data objectForKey:@"loudness_max_time"] floatValue];
             
             // Loudness Start
@@ -910,9 +996,9 @@
             width = [self widthForTimeInterval:endTime - startTime] - 3;
             height = TRACK_ITEM_HEIGHT - 2;
             
-            [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor colorWithCalibratedRed:0.5 green:0.5 blue:0.0 alpha:loudnessStart] andStroke:YES];
+            [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor colorWithCalibratedRed:0.5 green:0.5 blue:0.0 alpha:(loudnessStart - minLoudness) / loudnessRange] andStroke:YES];
             
-            NSString *time = [NSString stringWithFormat:@"%.02f", loudnessStart];
+            NSString *time = [NSString stringWithFormat:@"%.02f", (loudnessStart - minLoudness) / loudnessRange];
             [time drawInRect:NSMakeRect(x + 2, y, width, height) withAttributes:attributes];
             
             // Loudness max
@@ -922,9 +1008,9 @@
             width = [self widthForTimeInterval:endTime - startTime - loudnessMaxTime] - 3;
             height = TRACK_ITEM_HEIGHT - 2;
             
-            [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor colorWithCalibratedRed:0.5 green:0.5 blue:0.0 alpha:loudnessMax] andStroke:YES];
+            [self drawRect:NSMakeRect(x, y, width, height) withCornerRadius:BOX_CORNER_RADIUS fillColor:[NSColor colorWithCalibratedRed:0.5 green:0.5 blue:0.0 alpha:(loudnessMax - minLoudness) / loudnessRange] andStroke:YES];
             
-            time = [NSString stringWithFormat:@"%.02f", loudnessMax];
+            time = [NSString stringWithFormat:@"%.02f", (loudnessMax - minLoudness) / loudnessRange];
             [time drawInRect:NSMakeRect(x + 2, y, width, height) withAttributes:attributes];
             
             visibleSectionIndex ++;
@@ -961,6 +1047,9 @@
     
     // Check for timelineBar mouse clicks
     [self timelineBarMouseChecking];
+    
+    // Draw the timeline on top of everything
+    [self drawTimelineBar];
     
     // Draw the audio analysis data
     if(![[NSNull null] isEqual:self.audioAnalysis])
@@ -1011,9 +1100,6 @@
             trackItemsCount += 2;
         }
     }
-    
-    // Draw the timeline on top of everything
-    [self drawTimelineBar];
 }
 
 @end
